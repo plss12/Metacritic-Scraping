@@ -13,16 +13,20 @@ Todos los juegos ordenados por ranking
 			<li><a href="{{previus}}"><span uk-pagination-previous></span></a></li>
 			{% endif %}
 			<li><a href="/todosJuegos/1">1</a></li>
+			{% if 2 not in range %}
+			<li class="uk-disabled"><span>…</span></li>
+			{% endif %}
 			{% for num in range%}
 			{% if num == 1 %}
 			{% elif num == number %}
-			<li class="uk-disabled"><span>…</span></li>
 			<li class="uk-active"><span>{{num}}</span></li>
 			{% else %}
 			<li><a href="/todosJuegos/{{num}}">{{num}}</a></li>
 			{% endif %}
 			{% endfor %}
-			{% if num_pages not in range %}
+			{% if num_pages|add:-4 == number %}
+			<li><a href="/todosJuegos/{{num_pages}}">{{num_pages}}</a></li>
+			{% elif num_pages not in range %}
 			<li class="uk-disabled"><span>…</span></li>
 			<li><a href="/todosJuegos/{{num_pages}}">{{num_pages}}</a></li>
 			{% endif %}

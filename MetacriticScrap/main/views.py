@@ -24,10 +24,14 @@ def todosJuegos(request,number=1):
     num_pages = todosJuegos_total.num_pages
     previus = number - 1
     next = number + 1
-    if(number+10>num_pages):
-        rango = range(number,num_pages+1)
-    else:
-        rango = range(number,number+10)
+    if(number>=4):
+        if(number>=num_pages-3):
+            rango = range(number-3,num_pages+1)
+        else:
+            rango = range(number-3,number+4)
+    elif(number<4):
+        rango = range(1, number+4)
+
     if(next>num_pages):
         return render(request, 'todosJuegos.html', {'todosJuegos': juegos, 'num_pages': num_pages, 'number': number, 'previus': previus, 'range': rango})
     elif(previus<1):
