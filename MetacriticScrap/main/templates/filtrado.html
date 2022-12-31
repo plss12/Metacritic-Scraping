@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Buscar Juego por {{filtro}}
+{% endblock %}
+
+{% block content %}
+
+	<center><form class="uk-form-horizontal" method="post" action=''>{% csrf_token %}
+	<div>
+		{{form}}
+	</div>
+		<div>	
+			</br>    
+			<button class="uk-button uk-button-secondary" type="submit" name="action">Buscar juegos</button>
+		</div>
+    </form></center>
+	
+    {% if juegos %}
+    <h1> {{filtro}} : {{filtro2}}</h1>
+    {% for juego in juegos %}
+	<a href="/juego/{{juego.id}}" class="uk-link-reset">
+		<div class="uk-card uk-card-default uk-card-hover uk-child-width-1-2" uk-grid>
+			<div class="uk-grid-small uk-flex-middle" uk-grid>
+				<div class="uk-margin-left">
+					<img class="uk-border-square" width="130" src="{{juego.imagen}}">
+				</div>
+				<div class="uk-width-expand">
+					<h3 class="uk-card-title uk-margin-remove-bottom">{{juego.nombre}}</h3>
+				</div>
+			</div>
+			<div class="uk-card-body">
+				<h5>Ranking: {{juego.id}}</h5>
+				<h5>Consola: {{juego.consola}}</h5>
+				<h5>Puntuación de Metacritic: {{juego.puntuacionMeta}}</h5>
+				<h5>Puntuación de los usuarios: {{juego.puntuacionUsuarios}}</h5>
+			</div>
+		</div>
+	</a>
+	{% endfor %}
+    {% endif %}
+{% endblock %}

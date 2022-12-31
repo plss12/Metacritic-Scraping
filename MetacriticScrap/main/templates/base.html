@@ -1,0 +1,75 @@
+{% load static %} 
+
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="{% static 'css/uikit.min.css' %}" />
+        <script src="{% static 'js/jquery.min.js' %}"></script>
+        <script src="{% static 'js/uikit.min.js' %}"></script>
+        <title>MetaScrap</title>
+    </head>
+    <body>
+        <div class="uk-background-secondary uk-sticky" uk-sticky="media:960;" style>
+            <nav class="uk-background-secondary uk-light" uk-navbar>
+                <div class="uk-navbar-left">
+                    <a class="uk-navbar-item uk-logo" href="/">MetaScrap</a>
+                </div>
+                <div class="uk-navbar-center">
+
+                    <ul class="uk-navbar-nav">
+                        <li><a href="#">Base de datos</a>
+                        <div class="uk-navbar-dropdown">
+                                <ul class="uk-nav uk-navbar-dropdown-nav">
+                                    <li><a href="/populateBD">Poblar Base de Datos</a></li>
+                                    <li><a href="/populateWhoosh">Crear índice Whoosh</a></li>
+                                </ul>
+                            </div>
+                        </li>
+                        <li><a href="#">Listas</a>
+                            <div class="uk-navbar-dropdown">
+                                <ul class="uk-nav uk-navbar-dropdown-nav">
+                                    <li><a href="/todosJuegos/1">Todos los juegos</a></li>
+                                    <li><a href="/mejoresJuegos">Top 100 Juegos Metacritic</a></li>
+                                    <li><a href="/mejoresJuegosUsu">Top 100 Juegos Usuarios</a></li>
+                                    <li><a href="/listaConsolas">Consolas</a></li>
+                                    <li><a href="/listaDesarrolladoras">Desarrolladoras</a></li>
+                                    <li><a href="/listaGeneros">Géneros</a></li>
+                                    <li><a href="/listaClasificaciones">Clasificación</a></li>
+                                </ul>
+                            </div>
+                        </li>
+                        <li><a href="#">Busquedas</a>
+                            <div class="uk-navbar-dropdown">
+                                <ul class="uk-nav uk-navbar-dropdown-nav">
+                                    <li><a href="/buscarNombre">Por nombre</a></li>
+                                    <li><a href="/buscarDescripcion">Por descripción</a></li>
+                                    <li><a href="/buscarRanking">Por ranking</a></li>
+                                    <li><a href="/filtrarGenero">Por género</a></li>
+                                    <li><a href="/filtrarConsola">Por consola</a></li>
+                                    <li><a href="/filtrarDesarrolladora">Por desarrolladora</a></li>
+                                    <li><a href="/filtrarClasificacion">Por clasificación</a></li>
+                                    <li><a href="/filtrarPuntMeta">Por puntuación de Metacritic</a></li>
+                                    <li><a href="/filtrarPuntUsu">Por puntuación de usuarios</a></li>
+                                    <li><a href="/filtrarFecha">Por año</a></li>
+                                    <li><a href="/filtrarFechaPuntuMeta">Por año y puntuación de Metacritic</a></li>
+                                    <li><a href="/filtrarFechaPuntuUsu">Por año y puntuación de usuarios</a></li>
+                                </ul>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="uk-navbar-right">
+                    <ul class="uk-navbar-nav">
+                        <li><a href="/admin">Admin</a></li>
+                        <li><a href="#" uk-totop uk-scroll></a></li>
+                    </ul>
+                </div>
+            </nav>
+        </div>
+        <h1>{% block title %}{% endblock %}</h1>
+        <section>
+            {% block content %}{% endblock %}
+        </section>
+    </body>
+</html>

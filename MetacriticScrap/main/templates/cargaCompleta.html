@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block encabezado %}
+<h1> Carga de la Base de Datos</h1>
+{% endblock %}
+
+{% block content %}
+<center><br>
+    {% if tipo == "BD" %}
+    <h2> Carga de la Base de Datos</h2>
+    <p>La importación de la base de datos ha terminado correctamente.</p>
+    {% endif %}
+    {% if tipo == "Whoosh" %}
+    <h2> Carga de Whoosh</h2>
+    <p>La importación de Whoosh ha terminado correctamente.</p>
+    {% endif %}
+    <p>{{mensaje}}</p>
+</center>
+{% endblock %}

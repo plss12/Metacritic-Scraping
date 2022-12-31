@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Inicie Sesión para {{accion}}
+{% endblock %}
+
+{% block content %}
+{% if mensaje %}
+<center><h4>{{mensaje}}</h4></center>
+{% endif %}
+{% if formulario %}
+<center>
+	<form id="formulario" class="uk-form-horizontal" method="post" action=''>{% csrf_token %}
+		<div>
+			{% for field in formulario %}
+			<div class="uk-margin">
+				{{field.label_tag}} {{field}}
+			</div>
+			{% endfor %}
+		</div>
+		<div>
+			<button class="uk-button uk-button-secondary" type="submit" name="action">Iniciar Sesión</button>
+		</div>
+	</form>
+</center>
+{% endif %}
+{% endblock %}
