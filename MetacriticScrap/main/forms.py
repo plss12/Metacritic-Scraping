@@ -14,6 +14,10 @@ class BuscarRankingForm(forms.Form):
     numeroJuegos = Juego.objects.all().count()
     ranking = forms.IntegerField(label='Ranking', max_value=numeroJuegos, min_value=1)
 
+class BuscarRankingComparadorForm(forms.Form):
+    numeroJuegos = Juego.objects.all().count()
+    rankingComparador = forms.IntegerField(label='Ranking', max_value=numeroJuegos, min_value=1)
+
 class BuscarPuntMetaForm(forms.Form):
     puntMeta = forms.IntegerField(label='Puntuación Metacritic', max_value=100, min_value=0)
 

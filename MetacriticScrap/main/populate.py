@@ -1,4 +1,5 @@
 import shutil
+import time
 from main.models import Genero, Consola, Desarrolladora, Clasificacion, Juego
 from datetime import datetime
 import requests
@@ -14,64 +15,80 @@ base = "https://www.metacritic.com"
 
 num_pages = 200 #Para una carga de datos completa, poner 200, si se quiere una carga rápida, poner 5 o ménos, ya que por cada página se obtienen 100 juegos
 
+requests.packages.urllib3.disable_warnings()
 if (not os.environ.get('PYTHONHTTPSVERIFY', '') and
 getattr(ssl, '_create_unverified_context', None)):
     ssl._create_default_https_context = ssl._create_unverified_context
 
-def extraer_datos():
+def extraer_datos(pagina):
     res = []
-    for i in range(0, num_pages):
-        url = path + str(i)
-        user_agent = {'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': generate_user_agent(device_type="desktop", os=('mac', 'linux', 'win'))}
-        response = requests.get(url, headers = user_agent) 
-        s = BeautifulSoup(response.text,"lxml")
+    session = requests.Session()
+    user_agent=generate_user_agent(device_type="desktop", os=("linux"), navigator=('firefox'))
+    session.headers.update({'User-Agent': user_agent})
+    
+    print("Página " + str(pagina+1) + " de " + str(num_pages))
+    url = path + str(pagina)  
+    req = session.get(url)
+    s = BeautifulSoup(req.text,"lxml")
+    games = s.find_all("td", class_="clamp-summary-wrap")
+    imagenes = s.find_all("td", class_="clamp-image-wrap")
+    while((len(games)!=100 or len(imagenes)!=100) and pagina!=num_pages-1):
+        print("Error al obtener los datos de la página " + str(pagina) + ". Volviendo a intentarlo...")
+        time.sleep(10)
+        user_agent=generate_user_agent(device_type="desktop", os=("win", "mac", "linux"), navigator=('chrome', 'firefox'))
+        session.headers.update({'User-Agent': user_agent})
+        req = session.get(url)
+        s = BeautifulSoup(req.text,"lxml")
         games = s.find_all("td", class_="clamp-summary-wrap")
         imagenes = s.find_all("td", class_="clamp-image-wrap")
-        for game, imagen in zip(games, imagenes):
-            juego = []
-            id = game.find("span", class_="title numbered").get_text().strip().split(".")[0]
-            imagenUrl = imagen.find("img").get("src")
-            nombre = game.find("a", class_="title").get_text().strip()
-            consola = game.find("div", class_="platform").find("span",class_="data").get_text().strip()
-            puntuacionMeta = game.find("div", class_="clamp-metascore").find("div", class_="metascore_w").get_text()
-            puntuacionUsuarios = game.find("div", class_="clamp-userscore").find("div", class_="metascore_w").get_text()
-            descripcion = game.find("div", class_="summary").get_text().strip()
-            urlCriticasMeta = base + game.find("div", class_="clamp-metascore").find("a").get("href")
-            urlCriticasUsuarios = base + game.find("div", class_="clamp-userscore").find("a").get("href")
-            fechaLanzamiento = game.find("div", class_="clamp-details").find("span",class_="").get_text().strip()
-            url = base + game.find("a", class_="title").get("href")
-            juego.extend([id, nombre, imagenUrl, url, consola, puntuacionMeta, puntuacionUsuarios, descripcion, urlCriticasMeta, urlCriticasUsuarios, fechaLanzamiento])
-            url = base + game.find("a", class_="title").get("href")
-            response = requests.get(url, headers = user_agent)
-            s = BeautifulSoup(response.text,"lxml")
-            desarrolladoras = []
-            try:
-                desarrolladorasData = s.find("div", class_="summary_wrap").find("div", class_="section product_details").find("div", class_="details side_details").find("li", class_="summary_detail developer").find("span", class_="data").get_text().strip().split(", ")
-            except:
-                desarrolladorasData = []
-            for desarrolladora in desarrolladorasData:
-                desarrolladoras.append(desarrolladora.strip())
-            try:
-                clasificacion = s.find("div", class_="summary_wrap").find("div", class_="section product_details").find("div", class_="details side_details").find("li", class_="summary_detail product_rating").find("span", class_="data").get_text().strip()
-            except:
-                clasificacion = "No clasificado"
-            generos = []
-            try:
-                generosData = s.find("div", class_="summary_wrap").find("div", class_="section product_details").find("div", class_="details side_details").find("li", class_="summary_detail product_genre").find_all("span", class_="data")
-            except:
-                generosData = []
-            for genero in generosData:
-                if(genero!=""):
-                    generos.append(genero.get_text().strip())
+    
+    for game, imagen in zip(games, imagenes):
+        juego = []
+        id = game.find("span", class_="title numbered").get_text().strip().split(".")[0]
+        print("Juego " + id)
+        imagenUrl = imagen.find("img").get("src")
+        nombre = game.find("a", class_="title").get_text().strip()
+        consola = game.find("div", class_="platform").find("span",class_="data").get_text().strip()
+        puntuacionMeta = game.find("div", class_="clamp-metascore").find("div", class_="metascore_w").get_text()
+        puntuacionUsuarios = game.find("div", class_="clamp-userscore").find("div", class_="metascore_w").get_text()
+        descripcion = game.find("div", class_="summary").get_text().strip()
+        urlCriticasMeta = base + game.find("div", class_="clamp-metascore").find("a").get("href")
+        urlCriticasUsuarios = base + game.find("div", class_="clamp-userscore").find("a").get("href")
+        fechaLanzamiento = game.find("div", class_="clamp-details").find("span",class_="").get_text().strip()
+        url = base + game.find("a", class_="title").get("href")
+        juego.extend([id, nombre, imagenUrl, url, consola, puntuacionMeta, puntuacionUsuarios, descripcion, urlCriticasMeta, urlCriticasUsuarios, fechaLanzamiento])
+        url = base + game.find("a", class_="title").get("href")
+
+        req = session.get(url, verify=False)
+        s=BeautifulSoup(req.text,"lxml")
+        desarrolladoras = []
+        try:
+            desarrolladorasData = s.find("div", class_="summary_wrap").find("div", class_="section product_details").find("div", class_="details side_details").find("li", class_="summary_detail developer").find("span", class_="data").get_text().strip().split(", ")
+        except:
+            desarrolladorasData = []
+        for desarrolladora in desarrolladorasData:
+            desarrolladoras.append(desarrolladora.strip())
+        try:
+            clasificacion = s.find("div", class_="summary_wrap").find("div", class_="section product_details").find("div", class_="details side_details").find("li", class_="summary_detail product_rating").find("span", class_="data").get_text().strip()
+        except:
+            clasificacion = "No clasificado"
+        generos = []
+        try:
+            generosData = s.find("div", class_="summary_wrap").find("div", class_="section product_details").find("div", class_="details side_details").find("li", class_="summary_detail product_genre").find_all("span", class_="data")
+        except:
+            generosData = []
+        for genero in generosData:
+            if(genero!=""):
+                generos.append(genero.get_text().strip())
+        otrasConsolas = []
+        try:
+            otrasConsolasData = s.find("li", class_="summary_detail product_platforms").find("span", class_="data").find_all("a")
+            for otraConsola in otrasConsolasData:
+                otrasConsolas.append(otraConsola.get_text().strip())
+        except:
             otrasConsolas = []
-            try:
-                otrasConsolasData = s.find("li", class_="summary_detail product_platforms").find("span", class_="data").find_all("a")
-                for otraConsola in otrasConsolasData:
-                    otrasConsolas.append(otraConsola.get_text().strip())
-            except:
-                otrasConsolas = []
-            juego.extend([desarrolladoras, clasificacion, generos, otrasConsolas])
-            res.append(juego)
+        juego.extend([desarrolladoras, clasificacion, generos, otrasConsolas])
+        res.append(juego)
     return res
 
 def formatear_fecha(fecha):
@@ -114,36 +131,38 @@ def delete_tables():
 
 def populate_database():
     delete_tables()
-    print('Populating database...')
-    juegos = 0
-    datos = extraer_datos()
-    for juego in datos:
-        juegos += 1
-        print(juego)
-        consola = Consola.objects.get_or_create(nombre=juego[4])[0]
-        clasificacion = Clasificacion.objects.get_or_create(nombre=juego[12])[0]
-        fecha = formatear_fecha(juego[10])
-        if(juego[6] == "tbd"):
-            juego[6] = 0
-        Juego.objects.get_or_create(id=int(juego[0]), nombre=juego[1], imagen=juego[2], url=juego[3], consola=consola, puntuacionMeta=int(juego[5]), puntuacionUsuarios=float(juego[6]), descripcion=juego[7], urlMetaReviews=juego[8], urlUsuariosReviews=juego[9], fechaLanzamiento=fecha, clasificacion=clasificacion)
-        for genero in juego[13]:
-            genero = Genero.objects.get_or_create(nombre=genero)[0]
-            Juego.objects.get(id=juego[0]).generos.add(genero)
-        for desarrolladora in juego[11]:
-            desarrolladora = Desarrolladora.objects.get_or_create(nombre=desarrolladora)[0]
-            Juego.objects.get(id=juego[0]).desarrolladoras.add(desarrolladora)
-        for otraConsola in juego[14]:
-            consola = Consola.objects.get_or_create(nombre=otraConsola)[0]
-            Juego.objects.get(id=juego[0]).otrasConsolas.add(consola)
+    print('Populando base de datos...')
+    i=0
+    while(i<num_pages):
+        datos = extraer_datos(i)
+        i+=1
+        for juego in datos:
+            consola = Consola.objects.get_or_create(nombre=juego[4])[0]
+            clasificacion = Clasificacion.objects.get_or_create(nombre=juego[12])[0]
+            fecha = formatear_fecha(juego[10])
+            if(juego[6] == "tbd"):
+                juego[6] = 0
+            Juego.objects.get_or_create(id=int(juego[0]), nombre=juego[1], imagen=juego[2], url=juego[3], consola=consola, puntuacionMeta=int(juego[5]), puntuacionUsuarios=float(juego[6]), descripcion=juego[7], urlMetaReviews=juego[8], urlUsuariosReviews=juego[9], fechaLanzamiento=fecha, clasificacion=clasificacion)
+            for genero in juego[13]:
+                if(genero == ""):
+                    continue
+                genero = Genero.objects.get_or_create(nombre=genero)[0]
+                Juego.objects.get(id=juego[0]).generos.add(genero)
+            for desarrolladora in juego[11]:
+                desarrolladora = Desarrolladora.objects.get_or_create(nombre=desarrolladora)[0]
+                Juego.objects.get(id=juego[0]).desarrolladoras.add(desarrolladora)
+            for otraConsola in juego[14]:
+                consola = Consola.objects.get_or_create(nombre=otraConsola)[0]
+                Juego.objects.get(id=juego[0]).otrasConsolas.add(consola)
     generos = Genero.objects.all().count()
     desarrolladoras = Desarrolladora.objects.all().count()
     consolas = Consola.objects.all().count()
     clasificaciones = Clasificacion.objects.all().count()
-    print('Finished database population')
+    juegos = Juego.objects.all().count()
+    print('Finalizada la carga de la base de datos')
     return juegos, generos, desarrolladoras, consolas, clasificaciones
 
 def populate_whoosh():
-    #schem=Schema(id=ID(stored=True,unique=True), nombre=TEXT(stored=True), imagen=TEXT(stored=True), url=TEXT(stored=True), consola=TEXT(stored=True), puntuacionMeta=NUMERIC(stored=True), puntuacionUsuarios=NUMERIC(stored=True), descripcion=TEXT(stored=True), urlMetaReviews=TEXT(stored=True), urlUsuariosReviews=TEXT(stored=True), fechaLanzamiento=DATETIME(stored=True), desarrolladoras=TEXT(stored=True), clasificacion=TEXT(stored=True), generos=TEXT(stored=True), otrasConsolas=TEXT(stored=True))
     schem=Schema(id=ID(stored=True,unique=True), nombre=TEXT(), descripcion=TEXT(stored=False))
 
     if os.path.exists("Index"):

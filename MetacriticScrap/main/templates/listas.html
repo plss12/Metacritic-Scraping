@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load poll_extras %}
 
 {% block title %}
 {{tipo}}
@@ -6,11 +7,10 @@
 
 {% block content %}
 
-
     <ul class="uk-list uk-list-striped">
     {% for objeto in objetos %}
         <div>
-            <li class="uk-margin-left">• {{objeto.nombre}}</li>
+            <li class="uk-margin-left">• <a href="/{{tipo}}/{{objeto.nombre|to_line}}">{{objeto.nombre}}</a></li>
         </div>
     {% endfor %}
     </ul>

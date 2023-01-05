@@ -7,6 +7,7 @@ from main import views
 urlpatterns = [
     path('', views.index),
     path('todosJuegos/<int:number>', views.todosJuegos),
+    path('juegosRecientes/', views.juegosRecientes),
     path('mejoresJuegos/', views.mejoresJuegos),
     path('mejoresJuegosUsu/', views.mejoresJuegosUsu),
     path('listaConsolas/', views.listaConsolas),
@@ -29,6 +30,10 @@ urlpatterns = [
     path('filtrarFecha/', views.filtrarFecha),
     path('filtrarFechaPuntuMeta/', views.filtrarFechaPuntuMeta),
     path('filtrarFechaPuntuUsu/', views.filtrarFechaPuntuUsu),
-    path('ingresar/', views.ingresar),    
-
+    path('ingresar/', views.ingresar),
+    path('Consolas/<str:consola>', views.consolaFiltro),
+    path('Desarrolladoras/<str:desarrolladora>', views.desarrolladoraFiltro),
+    path('Generos/<str:genero>', views.generoFiltro),
+    path('Clasificaciones/<str:clasificacion>', views.clasificacionFiltro), 
+    path('compararRanking/', views.compararRanking),
 ]
