@@ -13,7 +13,7 @@ path = "https://www.metacritic.com/browse/games/score/metascore/all/all/filtered
 
 base = "https://www.metacritic.com"
 
-num_pages = 200 #Para una carga de datos completa, poner 200, si se quiere una carga rápida, poner 5 o ménos, ya que por cada página se obtienen 100 juegos
+num_pages = 2 #Para una carga de datos completa, poner 200, si se quiere una carga rápida de prueba, probar con un par de páginas
 
 requests.packages.urllib3.disable_warnings()
 if (not os.environ.get('PYTHONHTTPSVERIFY', '') and

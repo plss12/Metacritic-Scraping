@@ -25,19 +25,19 @@ class BuscarPuntUsuForm(forms.Form):
     puntUsu = forms.FloatField(label='Puntuación Usuarios', max_value=10, min_value=0, widget=NumberInput(attrs={'step': "0.1"}))
 
 class BuscarGeneroForm(forms.Form):
-    generos = Genero.objects.all()
+    generos = Genero.objects.all().order_by('nombre')
     genero = forms.ModelChoiceField(queryset=generos)
 
 class BuscarConsolaForm(forms.Form):
-    consolas = Consola.objects.all()
+    consolas = Consola.objects.all().order_by('nombre')
     consola = forms.ModelChoiceField(queryset=consolas)
 
 class BuscarDesarrolladoraForm(forms.Form):
-    desarrolladoras = Desarrolladora.objects.all()
+    desarrolladoras = Desarrolladora.objects.all().order_by('nombre')
     desarrolladora = forms.ModelChoiceField(queryset=desarrolladoras)
 
 class BuscarClasificacionForm(forms.Form):
-    clasificaciones = Clasificacion.objects.all()
+    clasificaciones = Clasificacion.objects.all().order_by('nombre')
     clasificacion = forms.ModelChoiceField(queryset=clasificaciones)
 
 class BuscarFechaLanzamientoForm(forms.Form):
