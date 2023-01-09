@@ -194,7 +194,7 @@ def filtrarPuntMeta(request):
         form = BuscarPuntMetaForm(request.POST)
         if form.is_valid():
             puntMeta = form.cleaned_data['puntMeta']
-            juegos = Juego.objects.filter(puntuacionMeta__gte=puntMeta)
+            juegos = Juego.objects.filter(puntuacionMeta=puntMeta)
     else:
         form = BuscarPuntMetaForm()
     return render(request, 'filtrado.html', {'form': form, 'juegos': juegos, 'filtro': "Puntuación Metacritic", 'filtro2': puntMeta})
@@ -207,7 +207,7 @@ def filtrarPuntUsu(request):
         form = BuscarPuntUsuForm(request.POST)
         if form.is_valid():
             puntUsu = form.cleaned_data['puntUsu']
-            juegos = Juego.objects.filter(puntuacionUsuarios__gte=puntUsu)
+            juegos = Juego.objects.filter(puntuacionUsuarios=puntUsu)
     else:
         form = BuscarPuntUsuForm()
     return render(request, 'filtrado.html', {'form': form, 'juegos': juegos, 'filtro': "Puntuación Usuario", 'filtro2': puntUsu})
@@ -293,7 +293,7 @@ def filtrarFechaPuntuMeta(request):
     else:
         form1 = BuscarFechaLanzamientoForm()
         form2 = BuscarPuntMetaForm()
-    return render(request, 'filtradoDoble.html', {'form1': form1, 'form2': form2, 'juegos': juegos, 'filtro': "Año de Lanzamiento y Puntuación Metacritic", 'filtro2': anyo, 'filtro3': puntMeta})
+    return render(request, 'filtradoDoble.html', {'form1': form1, 'form2': form2, 'juegos': juegos, 'filtro': "Año de Lanzamiento y Puntuación Mínima Metacritic", 'filtro2': anyo, 'filtro3': puntMeta})
 
 def filtrarFechaPuntuUsu(request):
     form1= BuscarFechaLanzamientoForm()
@@ -311,7 +311,7 @@ def filtrarFechaPuntuUsu(request):
     else:
         form1 = BuscarFechaLanzamientoForm()
         form2 = BuscarPuntUsuForm()
-    return render(request, 'filtradoDoble.html', {'form1': form1, 'form2': form2, 'juegos': juegos, 'filtro': "Año de Lanzamiento y Puntuación Usuario", 'filtro2': anyo, 'filtro3': puntUsu}) 
+    return render(request, 'filtradoDoble.html', {'form1': form1, 'form2': form2, 'juegos': juegos, 'filtro': "Año de Lanzamiento y Puntuación Mínima Usuario", 'filtro2': anyo, 'filtro3': puntUsu}) 
 
 def ingresar(request):
     accion = request.get_full_path().split('=')[1]
