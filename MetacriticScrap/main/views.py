@@ -17,7 +17,7 @@ def index (request):
 
 def todosJuegos(request,number=1):
     number = int(number)
-    todosJuegos_total = Paginator(Juego.objects.all().order_by('id'),10)
+    todosJuegos_total = Paginator(Juego.objects.all().order_by('ranking'),10)
     if number > todosJuegos_total.num_pages:
         number = todosJuegos_total.num_pages
     juegos = todosJuegos_total.get_page(number)
@@ -45,7 +45,7 @@ def juegosRecientes(request):
     return render(request, 'listaJuegos.html', {'juegos': juegosRecientes, 'mensaje': mensaje})
 
 def mejoresJuegos(request):
-    mejoresJuegos = Juego.objects.all().order_by('id')[:100]
+    mejoresJuegos = Juego.objects.all().order_by('ranking')[:100]
     mensaje="Top 100 Mejores Juegos segun Metacritic"
     return render(request, 'listaJuegos.html', {'juegos': mejoresJuegos, 'mensaje': mensaje})
 
@@ -123,7 +123,7 @@ def populateWhoosh(request):
     return render(request, 'confirmacionCarga.html', {'tipo': 'Whoosh'})
 
 def pagina_juego(request, id):
-    juego = Juego.objects.get(id=id)
+    juego = Juego.objects.get(ranking=id)
     return render(request, 'juego.html', {'juego': juego})
 
 def buscarNombre(request):
@@ -141,7 +141,7 @@ def buscarNombre(request):
                 query = QueryParser("nombre", schema=ix.schema).parse(str(nombre))
                 results = searcher.search(query, limit=None)
                 for r in results:
-                    juegos.append(Juego.objects.get(id=int(r['id'])))
+                    juegos.append(Juego.objects.get(ranking=int(r['id'])))
     else:
         form = BuscarNombreForm()
     return render(request, 'filtrado.html', {'form': form, 'juegos': juegos, 'filtro': "Nombre", 'filtro2': nombre})
@@ -161,7 +161,7 @@ def buscarDescripcion(request):
                 query = QueryParser("descripcion", ix.schema).parse(str(descripcion))
                 results = searcher.search(query)
                 for r in results:
-                    juegos.append(Juego.objects.get(id=int(r['id'])))
+                    juegos.append(Juego.objects.get(ranking=int(r['id'])))
     else:
         form = BuscarDescripcionForm()
     return render(request, 'filtrado.html', {'form': form, 'juegos': juegos, 'filtro': "Descripción", 'filtro2': descripcion})
@@ -174,14 +174,8 @@ def buscarRanking(request):
         form = BuscarRankingForm(request.POST)
         if form.is_valid():
             ranking = form.cleaned_data['ranking']
-
-            directorio = 'Index'
-            ix = open_dir(directorio)
-            with ix.searcher() as searcher:
-                query = QueryParser("id", ix.schema).parse(str(ranking))
-                results = searcher.search(query)
-                for r in results:
-                    juegos.append(Juego.objects.get(id=int(r['id'])))
+            juegos = Juego.objects.filter(ranking=ranking)
+            print(juegos)
     else:
         form = BuscarRankingForm()
     return render(request, 'filtrado.html', {'form': form, 'juegos': juegos, 'filtro': "Ranking", 'filtro2': ranking})
@@ -220,7 +214,7 @@ def filtrarGenero(request):
         form = BuscarGeneroForm(request.POST)
         if form.is_valid():
             genero = form.cleaned_data['genero']
-            juegos = Juego.objects.filter(generos__id=genero.id)
+            juegos = Juego.objects.filter(generos=genero)
     else:
         form = BuscarGeneroForm()
     return render(request, 'filtrado.html', {'form': form, 'juegos': juegos, 'filtro': "Género", 'filtro2': genero})
@@ -233,7 +227,7 @@ def filtrarConsola(request):
         form = BuscarConsolaForm(request.POST)
         if form.is_valid():
             consola = form.cleaned_data['consola']
-            juegos = Juego.objects.filter(consola_id=consola.id)
+            juegos = Juego.objects.filter(consola_id=consola)
     else:
         form = BuscarConsolaForm()
     return render(request, 'filtrado.html', {'form': form, 'juegos': juegos, 'filtro': "Consola", 'filtro2': consola})
@@ -246,7 +240,7 @@ def filtrarDesarrolladora(request):
         form = BuscarDesarrolladoraForm(request.POST)
         if form.is_valid():
             desarrolladora = form.cleaned_data['desarrolladora']
-            juegos = Juego.objects.filter(desarrolladoras__id=desarrolladora.id)
+            juegos = Juego.objects.filter(desarrolladoras__id=desarrolladora)
     else:
         form = BuscarDesarrolladoraForm()
     return render(request, 'filtrado.html', {'form': form, 'juegos': juegos, 'filtro': "Desarrolladora", 'filtro2': desarrolladora})
@@ -259,7 +253,7 @@ def filtrarClasificacion(request):
         form = BuscarClasificacionForm(request.POST)
         if form.is_valid():
             clasificacion = form.cleaned_data['clasificacion']
-            juegos = Juego.objects.filter(clasificacion_id=clasificacion.id)
+            juegos = Juego.objects.filter(clasificacion_id=clasificacion)
     else:
         form = BuscarClasificacionForm()
     return render(request, 'filtrado.html', {'form': form, 'juegos': juegos, 'filtro': "Clasificación", 'filtro2': clasificacion})
@@ -343,27 +337,19 @@ def ingresar(request):
 def compararRanking(request):
     form1 = BuscarRankingForm()
     form2 = BuscarRankingComparadorForm()
-    juegos = []
     ranking1 = ""
     ranking2 = ""
+    juego1 = []
+    juego2 = []
     if request.method == 'POST':
         form1 = BuscarRankingForm(request.POST)
         form2 = BuscarRankingComparadorForm(request.POST)
         if form1.is_valid() and form2.is_valid():
             ranking1 = form1.cleaned_data['ranking']
             ranking2 = form2.cleaned_data['rankingComparador']
-            directorio = 'Index'
-            ix = open_dir(directorio)
-            with ix.searcher() as searcher:
-                query = QueryParser("id", ix.schema).parse(str(ranking1))
-                results = searcher.search(query)
-                for r in results:
-                    juegos.append(Juego.objects.get(id=int(r['id'])))
-                query = QueryParser("id", ix.schema).parse(str(ranking2))
-                results = searcher.search(query)
-                for r in results:
-                    juegos.append(Juego.objects.get(id=int(r['id'])))
+            juego1 = Juego.objects.filter(ranking=ranking1)
+            juego2 = Juego.objects.filter(ranking=ranking2)
     else:
         form1 = BuscarRankingForm()
         form2 = BuscarRankingComparadorForm()
-    return render(request, 'compararJuegos.html', {'form1': form1, "form2": form2, 'juegos': juegos})
+    return render(request, 'compararJuegos.html', {'form1': form1, "form2": form2, 'juegos1': juego1, 'juegos2': juego2})

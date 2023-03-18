@@ -13,7 +13,7 @@ path = "https://www.metacritic.com/browse/games/score/metascore/all/all/filtered
 
 base = "https://www.metacritic.com"
 
-num_pages = 2 #Para una carga de datos completa, poner 200, si se quiere una carga rápida de prueba, probar con un par de páginas
+num_pages = 1 #Para una carga de datos completa, poner 200, si se quiere una carga rápida de prueba, probar con un par de páginas
 
 requests.packages.urllib3.disable_warnings()
 if (not os.environ.get('PYTHONHTTPSVERIFY', '') and
@@ -123,11 +123,11 @@ def formatear_fecha(fecha):
     return fecha
 
 def delete_tables():
-    Genero.objects.all().delete()
-    Consola.objects.all().delete()
-    Desarrolladora.objects.all().delete()
-    Clasificacion.objects.all().delete()
-    Juego.objects.all().delete()
+    Genero.drop_collection()
+    Consola.drop_collection()
+    Desarrolladora.drop_collection()
+    Clasificacion.drop_collection()
+    Juego.drop_collection()
 
 def populate_database():
     delete_tables()
@@ -142,18 +142,18 @@ def populate_database():
             fecha = formatear_fecha(juego[10])
             if(juego[6] == "tbd"):
                 juego[6] = 0
-            Juego.objects.get_or_create(id=int(juego[0]), nombre=juego[1], imagen=juego[2], url=juego[3], consola=consola, puntuacionMeta=int(juego[5]), puntuacionUsuarios=float(juego[6]), descripcion=juego[7], urlMetaReviews=juego[8], urlUsuariosReviews=juego[9], fechaLanzamiento=fecha, clasificacion=clasificacion)
+            Juego.objects.get_or_create(ranking=int(juego[0]), nombre=juego[1], imagen=juego[2], url=juego[3], consola=consola, puntuacionMeta=int(juego[5]), puntuacionUsuarios=float(juego[6]), descripcion=juego[7], urlMetaReviews=juego[8], urlUsuariosReviews=juego[9], fechaLanzamiento=fecha, clasificacion=clasificacion)
             for genero in juego[13]:
                 if(genero == ""):
                     continue
                 genero = Genero.objects.get_or_create(nombre=genero)[0]
-                Juego.objects.get(id=juego[0]).generos.add(genero)
+                Juego.objects.get(ranking=juego[0]).generos.add(genero)
             for desarrolladora in juego[11]:
                 desarrolladora = Desarrolladora.objects.get_or_create(nombre=desarrolladora)[0]
-                Juego.objects.get(id=juego[0]).desarrolladoras.add(desarrolladora)
+                Juego.objects.get(ranking=juego[0]).desarrolladoras.add(desarrolladora)
             for otraConsola in juego[14]:
                 consola = Consola.objects.get_or_create(nombre=otraConsola)[0]
-                Juego.objects.get(id=juego[0]).otrasConsolas.add(consola)
+                Juego.objects.get(ranking=juego[0]).otrasConsolas.add(consola)
     generos = Genero.objects.all().count()
     desarrolladoras = Desarrolladora.objects.all().count()
     consolas = Consola.objects.all().count()
@@ -175,7 +175,7 @@ def populate_whoosh():
     numJuegos=0
     listaJuegos=Juego.objects.all()
     for juego in listaJuegos:
-        writer.add_document(id=str(juego.id), nombre=str(juego.nombre), descripcion=str(juego.descripcion))  
+        writer.add_document(id=str(juego.ranking), nombre=str(juego.nombre), descripcion=str(juego.descripcion))  
         numJuegos+=1
     writer.commit()
     return numJuegos

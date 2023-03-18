@@ -1,32 +1,48 @@
-from django.db import models
+from djongo import models
 from django.core.validators import URLValidator
 
 class Genero(models.Model):
-    nombre = models.CharField(max_length=50)
+    nombre = models.CharField(max_length=50, primary_key=True)
 
     def __str__(self):
         return self.nombre
+    
+    @classmethod
+    def drop_collection(cls):
+        cls.objects.all().delete()
 
 class Consola(models.Model):
-    nombre = models.CharField(max_length=50)
+    nombre = models.CharField(max_length=50, primary_key=True)
 
     def __str__(self):
         return self.nombre
+    
+    @classmethod
+    def drop_collection(cls):
+        cls.objects.all().delete()
 
 class Desarrolladora(models.Model):
-    nombre = models.CharField(max_length=50)
+    nombre = models.CharField(max_length=50, primary_key=True)
 
     def __str__(self):
         return self.nombre
+    
+    @classmethod
+    def drop_collection(cls):
+        cls.objects.all().delete()
 
 class Clasificacion(models.Model):
-    nombre = models.CharField(max_length=5)
+    nombre = models.CharField(max_length=5, primary_key=True)
 
     def __str__(self):
         return self.nombre
 
+    @classmethod
+    def drop_collection(cls):
+        cls.objects.all().delete()
+
 class Juego(models.Model):
-    id = models.IntegerField(primary_key=True)
+    ranking = models.IntegerField(primary_key=True)
     nombre = models.CharField(max_length=50)
     imagen = models.URLField(validators=[URLValidator()])
     url = models.URLField(validators=[URLValidator()])
@@ -44,3 +60,7 @@ class Juego(models.Model):
 
     def __str__(self):
         return self.nombre + ' - ' + self.consola.nombre
+
+    @classmethod
+    def drop_collection(cls):
+        cls.objects.all().delete()

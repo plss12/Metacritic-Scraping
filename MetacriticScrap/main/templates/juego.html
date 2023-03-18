@@ -19,33 +19,33 @@ Detalles del juego:
                 </div>
             </div>
             <div class="uk-card-body">
-                <h5>Ranking: {{juego.id}}</h5>
-                <h5>Consola: <a href="/Consolas/{{juego.consola.nombre|to_line}}">{{juego.consola}}</a></h5>
+                <h5><strong>Ranking:</strong> {{juego.ranking}}</h5>
+                <h5><strong>Consola:</strong> <a href="/Consolas/{{juego.consola.nombre|to_line}}">{{juego.consola}}</a></h5>
                 {% if juego.otrasConsolas.all|length != 0 %}
-                <h5>Otras consolas:</h5>
+                <h5><strong>Otras consolas:</strong></h5>
                 <ul>
                     {% for consola in juego.otrasConsolas.all %}
                     <a href="/Consolas/{{consola.nombre|to_line}}"><li>{{consola.nombre}}</li></a>
                     {% endfor %}
                 </ul>
                 {% endif %}
-                <h5>Puntuación de Metacritic: <a href={{juego.urlMetaReviews}}>{{juego.puntuacionMeta}}</a></h5>
-                <h5>Puntuación de los usuarios: <a href={{juego.urlUsuariosReviews}}>{{juego.puntuacionUsuarios}}</a></h5>
-                <h5>Fecha de lanzamiento: {{juego.fechaLanzamiento}}</h5>
-                <h5>Descripción: {{juego.descripcion}}</h5>
-                <h5>Desarrolladoras: </h5>
+                <h5><strong>Puntuación de Metacritic:</strong> <a href={{juego.urlMetaReviews}}>{{juego.puntuacionMeta}}</a></h5>
+                <h5><strong>Puntuación de los usuarios:</strong> <a href={{juego.urlUsuariosReviews}}>{{juego.puntuacionUsuarios}}</a></h5>
+                <h5><strong>Fecha de lanzamiento:</strong> {{juego.fechaLanzamiento}}</h5>
+                <h5><strong>Descripción:</strong> {{juego.descripcion}}</h5>
+                <h5><strong>Desarrolladoras:</strong> </h5>
                 <ul>
                     {% for desarrolladora in juego.desarrolladoras.all %}
                         <a href="/Desarrolladoras/{{desarrolladora.nombre|to_line}}"><li>{{desarrolladora.nombre}}</li></a>
                     {% endfor %}
                 </ul>
-                <h5>Generos: </h5>
+                <h5><strong>Generos: </strong></h5>
                 <ul>
                     {% for genero in juego.generos.all %}
                         <a href="/Generos/{{genero.nombre|to_line}}"><li>{{genero.nombre}}</li></a>
                     {% endfor %}
                 </ul>
-                <h5>Clasificación: <a href="/Clasificaciones/{{juego.clasificacion.nombre|to_line}}">{{juego.clasificacion.nombre}}</a></h5>
+                <h5><strong>Clasificación:</strong> <a href="/Clasificaciones/{{juego.clasificacion.nombre|to_line}}">{{juego.clasificacion.nombre}}</a></h5>
                 <h5><a href={{juego.url}}>Detalles Metacritic</a></h5>
             </div>
         </div>

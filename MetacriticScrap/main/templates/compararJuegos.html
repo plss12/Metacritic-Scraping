@@ -23,7 +23,7 @@ Comparador de Juegos:
     </form>
 </center>
 
-{% if juegos %}
+{% if juegos1 or juegos2 %}
 <style>
     .column {
         float: left;
@@ -33,8 +33,8 @@ Comparador de Juegos:
 
 </br>
 <div>
-    {% for juego in juegos %}
-    <a href="/juego/{{juego.id}}" class="uk-link-reset">
+    {% for juego in juegos1 %}
+    <a href="/juego/{{juego.ranking}}" class="uk-link-reset">
         <div class="uk-flex uk-flex-center column">
             <div class="uk-card uk-card-default">
                 <div class="uk-card-header">
@@ -48,13 +48,13 @@ Comparador de Juegos:
                     </div>
                 </div>
                 <div class="uk-card-body">
-                    <h5>Ranking: {{juego.id}}</h5>
-                    <h5>Consola: <a href="/Consolas/{{juego.consola.nombre|to_line}}">{{juego.consola}}</a></h5>
-                    <h5>Puntuación de Metacritic: <a href={{juego.urlMetaReviews}}>{{juego.puntuacionMeta}}</a></h5>
-                    <h5>Puntuación de los usuarios: <a
+                    <h5><strong>Ranking: </strong>{{juego.ranking}}</h5>
+                    <h5><strong>Consola: </strong><a href="/Consolas/{{juego.consola.nombre|to_line}}">{{juego.consola}}</a></h5>
+                    <h5><strong>Puntuación de Metacritic: </strong><a href={{juego.urlMetaReviews}}>{{juego.puntuacionMeta}}</a></h5>
+                    <h5><strong>Puntuación de los usuarios: </strong><a
                             href={{juego.urlUsuariosReviews}}>{{juego.puntuacionUsuarios}}</a></h5>
-                    <h5>Fecha de lanzamiento: {{juego.fechaLanzamiento}}</h5>
-                    <h5>Desarrolladoras: </h5>
+                    <h5><strong>Fecha de lanzamiento: </strong>{{juego.fechaLanzamiento}}</h5>
+                    <h5><strong>Desarrolladoras: </strong></h5>
                     <ul>
                         {% for desarrolladora in juego.desarrolladoras.all %}
                         <a href="/Desarrolladoras/{{desarrolladora.nombre|to_line}}">
@@ -62,7 +62,7 @@ Comparador de Juegos:
                         </a>
                         {% endfor %}
                     </ul>
-                    <h5>Generos: </h5>
+                    <h5><strong>Generos: </strong></h5>
                     <ul>
                         {% for genero in juego.generos.all %}
                         <a href="/Generos/{{genero.nombre|to_line}}">
@@ -70,8 +70,53 @@ Comparador de Juegos:
                         </a>
                         {% endfor %}
                     </ul>
-                    <h5>Clasificación: <a
-                            href="/Clasificaciones/{{juego.clasificacion.nombre|to_line}}">{{juego.clasificacion.nombre}}</a>
+                    <h5><strong>Clasificación: </strong>
+                        <a href="/Clasificaciones/{{juego.clasificacion.nombre|to_line}}">{{juego.clasificacion.nombre}}</a>
+                    </h5>
+                </div>
+            </div>
+        </div>
+    </a>
+    {% endfor %}
+    {% for juego in juegos2 %}
+    <a href="/juego/{{juego.ranking}}" class="uk-link-reset">
+        <div class="uk-flex uk-flex-center column">
+            <div class="uk-card uk-card-default">
+                <div class="uk-card-header">
+                    <div class="uk-flex-middle" uk-grid>
+                        <div class="uk-margin-left">
+                            <img class="uk-border-square" width="130" src="{{juego.imagen}}">
+                        </div>
+                        <div class="uk-width-expand">
+                            <h3 class="uk-card-title uk-margin-remove-bottom">{{juego.nombre}}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="uk-card-body">
+                    <h5><strong>Ranking: </strong>{{juego.ranking}}</h5>
+                    <h5><strong>Consola: </strong><a href="/Consolas/{{juego.consola.nombre|to_line}}">{{juego.consola}}</a></h5>
+                    <h5><strong>Puntuación de Metacritic: </strong><a href={{juego.urlMetaReviews}}>{{juego.puntuacionMeta}}</a></h5>
+                    <h5><strong>Puntuación de los usuarios: </strong><a
+                            href={{juego.urlUsuariosReviews}}>{{juego.puntuacionUsuarios}}</a></h5>
+                    <h5><strong>Fecha de lanzamiento: </strong>{{juego.fechaLanzamiento}}</h5>
+                    <h5><strong>Desarrolladoras: </strong></h5>
+                    <ul>
+                        {% for desarrolladora in juego.desarrolladoras.all %}
+                        <a href="/Desarrolladoras/{{desarrolladora.nombre|to_line}}">
+                            <li>{{desarrolladora.nombre}}</li>
+                        </a>
+                        {% endfor %}
+                    </ul>
+                    <h5><strong>Generos: </strong></h5>
+                    <ul>
+                        {% for genero in juego.generos.all %}
+                        <a href="/Generos/{{genero.nombre|to_line}}">
+                            <li>{{genero.nombre}}</li>
+                        </a>
+                        {% endfor %}
+                    </ul>
+                    <h5><strong>Clasificación: </strong>
+                        <a href="/Clasificaciones/{{juego.clasificacion.nombre|to_line}}">{{juego.clasificacion.nombre}}</a>
                     </h5>
                 </div>
             </div>

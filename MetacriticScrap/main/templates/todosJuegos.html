@@ -39,7 +39,7 @@ Todos los juegos ordenados por ranking
 	<div>
 		{% for juego in todosJuegos %}
 		<div>
-			<a href="/juego/{{juego.id}}" class="uk-link-reset">
+			<a href="/juego/{{juego.ranking}}" class="uk-link-reset">
 				<div class="uk-card uk-card-default uk-card-hover uk-child-width-1-2" uk-grid>
 					<div class="uk-grid-small uk-flex-middle" uk-grid>
 						<div class="uk-margin-left">
@@ -50,10 +50,10 @@ Todos los juegos ordenados por ranking
 						</div>
 					</div>
 					<div class="uk-card-body">
-						<h5>Ranking: {{juego.id}}</h5>
-						<h5>Consola: {{juego.consola}}</h5>
-						<h5>Puntuación de Metacritic: {{juego.puntuacionMeta}}</h5>
-						<h5>Puntuación de los usuarios: {{juego.puntuacionUsuarios}}</h5>
+						<h5><strong>Ranking:</strong> {{juego.ranking}}</h5>
+						<h5><strong>Consola:</strong> {{juego.consola}}</h5>
+						<h5><strong>Puntuación de Metacritic:</strong> {{juego.puntuacionMeta}}</h5>
+						<h5><strong>Puntuación de los usuarios:</strong> {{juego.puntuacionUsuarios}}</h5>
 					</div>
 				</div>
 			</a>
