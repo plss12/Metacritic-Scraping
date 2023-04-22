@@ -49,7 +49,7 @@ Comparador de Juegos:
                 </div>
                 <div class="uk-card-body">
                     <h5><strong>Ranking: </strong>{{juego.ranking}}</h5>
-                    <h5><strong>Consola: </strong><a href="/Consolas/{{juego.consola.nombre|to_line}}">{{juego.consola}}</a></h5>
+                    <h5><strong>Consola: </strong><a href="/Consolas/{{juego.consola_id|to_line}}">{{juego.consola_id}}</a></h5>
                     <h5><strong>Puntuación de Metacritic: </strong><a href={{juego.urlMetaReviews}}>{{juego.puntuacionMeta}}</a></h5>
                     <h5><strong>Puntuación de los usuarios: </strong><a
                             href={{juego.urlUsuariosReviews}}>{{juego.puntuacionUsuarios}}</a></h5>
@@ -71,7 +71,7 @@ Comparador de Juegos:
                         {% endfor %}
                     </ul>
                     <h5><strong>Clasificación: </strong>
-                        <a href="/Clasificaciones/{{juego.clasificacion.nombre|to_line}}">{{juego.clasificacion.nombre}}</a>
+                        <a href="/Clasificaciones/{{juego.clasificacion_id|to_line}}">{{juego.clasificacion_id}}</a>
                     </h5>
                 </div>
             </div>
@@ -94,7 +94,7 @@ Comparador de Juegos:
                 </div>
                 <div class="uk-card-body">
                     <h5><strong>Ranking: </strong>{{juego.ranking}}</h5>
-                    <h5><strong>Consola: </strong><a href="/Consolas/{{juego.consola.nombre|to_line}}">{{juego.consola}}</a></h5>
+                    <h5><strong>Consola: </strong><a href="/Consolas/{{juego.consola_id|to_line}}">{{juego.consola_id}}</a></h5>
                     <h5><strong>Puntuación de Metacritic: </strong><a href={{juego.urlMetaReviews}}>{{juego.puntuacionMeta}}</a></h5>
                     <h5><strong>Puntuación de los usuarios: </strong><a
                             href={{juego.urlUsuariosReviews}}>{{juego.puntuacionUsuarios}}</a></h5>
@@ -116,7 +116,7 @@ Comparador de Juegos:
                         {% endfor %}
                     </ul>
                     <h5><strong>Clasificación: </strong>
-                        <a href="/Clasificaciones/{{juego.clasificacion.nombre|to_line}}">{{juego.clasificacion.nombre}}</a>
+                        <a href="/Clasificaciones/{{juego.clasificacion_id|to_line}}">{{juego.clasificacion_id}}</a>
                     </h5>
                 </div>
             </div>

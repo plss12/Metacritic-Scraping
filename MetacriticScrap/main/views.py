@@ -1,6 +1,5 @@
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, render
-from main.models import Genero, Consola, Desarrolladora, Clasificacion, Juego
 from main.populate import populate_database, populate_whoosh
 from main.forms import *
 from whoosh.index import open_dir
@@ -11,13 +10,28 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
+from pymongo import MongoClient
+from pymongo import DESCENDING
+from decouple import config
+
+client = MongoClient(config('BD_HOST'))
+db = client[config('BD_NAME')]
+juegos = db.main_juego
+consolas = db.main_consola
+generos = db.main_genero
+desarrolladoras = db.main_desarrolladora
+clasificaciones = db.main_clasificacion
+juego_desarrolladoras = db.main_juego_desarrolladoras
+juego_generos = db.main_juego_generos
+juego_otrasConsolas = db.juego_otrasConsolas
 
 def index (request):
     return render(request, 'index.html')
 
 def todosJuegos(request,number=1):
     number = int(number)
-    todosJuegos_total = Paginator(Juego.objects.all().order_by('ranking'),10)
+    juegos = list(db.main_juego.find().sort("ranking"))
+    todosJuegos_total = Paginator(juegos,10)
     if number > todosJuegos_total.num_pages:
         number = todosJuegos_total.num_pages
     juegos = todosJuegos_total.get_page(number)
@@ -40,65 +54,69 @@ def todosJuegos(request,number=1):
         return render(request, 'todosJuegos.html', {'todosJuegos': juegos, 'num_pages': num_pages, 'number': number, 'previus': previus, 'next': next, 'range': rango})
 
 def juegosRecientes(request):
-    juegosRecientes = Juego.objects.all().order_by('-fechaLanzamiento')[:25]
+    juegosRecientes = list(db.main_juego.find().sort("fechaLanzamiento", -1).limit(25))
     mensaje="Juegos Más Recientes"
     return render(request, 'listaJuegos.html', {'juegos': juegosRecientes, 'mensaje': mensaje})
 
 def mejoresJuegos(request):
-    mejoresJuegos = Juego.objects.all().order_by('ranking')[:100]
+    mejoresJuegos = list(db.main_juego.find().sort("ranking").limit(100))
     mensaje="Top 100 Mejores Juegos segun Metacritic"
     return render(request, 'listaJuegos.html', {'juegos': mejoresJuegos, 'mensaje': mensaje})
 
 def mejoresJuegosUsu(request):
-    mejoresJuegosUsu = Juego.objects.all().order_by('-puntuacionUsuarios')[:100]
+    mejoresJuegosUsu = list(db.main_juego.find().sort("puntuacionUsuarios",DESCENDING).limit(100))
     mensaje="Top 100 Mejores Juegos segun los usuarios"
     return render(request, 'listaJuegos.html', {'juegos': mejoresJuegosUsu, 'mensaje': mensaje})
 
 def listaConsolas(request):
-    consolas = Consola.objects.all().order_by('nombre')
+    consolas = list(db.main_consola.find().sort("nombre"))
     return render(request, 'listas.html', {'objetos': consolas, 'tipo': 'Consolas'})
 
 def consolaFiltro(request, consola):
     if(' --- ' in consola):
         consola = consola.replace(' --- ', '/')
-    consola = Consola.objects.get(nombre=consola)
-    juegos = Juego.objects.filter(consola=consola).order_by('nombre')
+    consola = db.main_consola.find_one({'nombre': consola})
+    juegos = list(db.main_juego.find({'consola_id': consola['nombre']}))
     if(len(juegos) == 0):
-        return render(request, 'filtroListas.html', {'tipo': 'Consolas', 'juegos': juegos, 'filtro': consola.nombre, 'error': 'No hay ningún juego que sea principalmente para esta consola'})
-    return render(request, 'filtroListas.html', {'tipo': 'Consolas', 'juegos': juegos, 'filtro': consola.nombre})
+        return render(request, 'filtroListas.html', {'tipo': 'Consolas', 'juegos': juegos, 'filtro': consola['nombre'], 'error': 'No hay ningún juego que sea principalmente para esta consola'})
+    return render(request, 'filtroListas.html', {'tipo': 'Consolas', 'juegos': juegos, 'filtro': consola['nombre']})
 
 def listaDesarrolladoras(request):
-    desarrolladoras = Desarrolladora.objects.all().order_by('nombre')
+    desarrolladoras = list(db.main_desarrolladora.find().sort("nombre"))
     return render(request, 'listas.html', {'objetos': desarrolladoras, 'tipo': 'Desarrolladoras'})
 
 def desarrolladoraFiltro(request, desarrolladora):
     if(' --- ' in desarrolladora):
         desarrolladora = desarrolladora.replace(' --- ', '/')
-    desarrolladora = Desarrolladora.objects.get(nombre=desarrolladora)
-    juegos = Juego.objects.filter(desarrolladoras=desarrolladora).order_by('nombre')
-    return render(request, 'filtroListas.html', {'tipo': 'Desarrolladoras', 'juegos': juegos, 'filtro': desarrolladora.nombre})
+
+    desarrolladora = db.main_desarrolladora.find_one({'nombre': desarrolladora})
+    juegosIDs = db.main_juego_desarrolladoras.distinct('juego_id', {'desarrolladora_id': desarrolladora["nombre"]})
+    juegos = list(db.main_juego.find({'ranking': {'$in': juegosIDs}}))
+
+    return render(request, 'filtroListas.html', {'tipo': 'Desarrolladoras', 'juegos': juegos, 'filtro': desarrolladora["nombre"]})
 
 def listaGeneros(request):
-    generos = Genero.objects.all().order_by('nombre')
+    generos = list(db.main_genero.find().sort("nombre"))
     return render(request, 'listas.html', {'objetos': generos, 'tipo': 'Generos'})
 
 def generoFiltro(request, genero):
     if(' --- ' in genero):
         genero = genero.replace(' --- ', '/')
-    genero = Genero.objects.get(nombre=genero)
-    juegos = Juego.objects.filter(generos=genero).order_by('nombre')
-    return render(request, 'filtroListas.html', {'tipo': 'Generos', 'juegos': juegos, 'filtro': genero.nombre})
+    genero = db.main_genero.find_one({'nombre': genero})
+    juegosIDs = db.main_juego_generos.distinct('juego_id', {'genero_id': genero["nombre"]})
+    juegos = list(db.main_juego.find({'ranking': {'$in': juegosIDs}}))
+    return render(request, 'filtroListas.html', {'tipo': 'Generos', 'juegos': juegos, 'filtro': genero["nombre"]})
 
 def listaClasificaciones(request):
-    clasificaciones = Clasificacion.objects.all().order_by('nombre')
+    clasificaciones = list(db.main_clasificacion.find().sort("nombre"))
     return render(request, 'listas.html', {'objetos': clasificaciones, 'tipo': 'Clasificaciones'})
 
 def clasificacionFiltro(request, clasificacion):
     if(' --- ' in clasificacion):
         clasificacion = clasificacion.replace(' --- ', '/')
-    clasificacion = Clasificacion.objects.get(nombre=clasificacion)
-    juegos = Juego.objects.filter(clasificacion=clasificacion).order_by('nombre')
-    return render(request, 'filtroListas.html', {'tipo': 'Clasificaciones', 'juegos': juegos, 'filtro': clasificacion.nombre})
+    clasificacion = db.main_clasificacion.find_one({'nombre': clasificacion})
+    juegos = list(db.main_juego.find({'clasificacion_id': clasificacion['nombre']}))
+    return render(request, 'filtroListas.html', {'tipo': 'Clasificaciones', 'juegos': juegos, 'filtro': clasificacion["nombre"]})
 
 @login_required(login_url='/ingresar')
 def populateDB(request):
@@ -123,9 +141,15 @@ def populateWhoosh(request):
     return render(request, 'confirmacionCarga.html', {'tipo': 'Whoosh'})
 
 def pagina_juego(request, id):
-    juego = Juego.objects.get(ranking=id)
-    return render(request, 'juego.html', {'juego': juego})
-
+    juego = db.main_juego.find_one({'ranking': id})
+    desarrolladoras = list(db.main_juego_desarrolladoras.find({'juego_id': juego['ranking']}))
+    generos = list(db.main_juego_generos.find({'juego_id': juego['ranking']}))
+    otrasConsolas = list(db.main_juego_otrasConsolas.distinct('consola_id', {'juego_id': juego['ranking']}))
+    if(len(otrasConsolas) == 0):
+        return render(request, 'juego.html', {'juego': juego, 'desarrolladoras': desarrolladoras, 'generos': generos})
+    else:
+        return render(request, 'juego.html', {'juego': juego, 'desarrolladoras': desarrolladoras, 'generos': generos, 'otrasConsolas': otrasConsolas})
+    
 def buscarNombre(request):
     form = BuscarNombreForm()
     juegos = []
@@ -141,7 +165,7 @@ def buscarNombre(request):
                 query = QueryParser("nombre", schema=ix.schema).parse(str(nombre))
                 results = searcher.search(query, limit=None)
                 for r in results:
-                    juegos.append(Juego.objects.get(ranking=int(r['id'])))
+                    juegos.append(db.main_juego.find_one({'ranking': int(r['id'])}))
     else:
         form = BuscarNombreForm()
     return render(request, 'filtrado.html', {'form': form, 'juegos': juegos, 'filtro': "Nombre", 'filtro2': nombre})
@@ -161,7 +185,7 @@ def buscarDescripcion(request):
                 query = QueryParser("descripcion", ix.schema).parse(str(descripcion))
                 results = searcher.search(query)
                 for r in results:
-                    juegos.append(Juego.objects.get(ranking=int(r['id'])))
+                    juegos.append(db.main_juego.find_one({'ranking': int(r['id'])}))
     else:
         form = BuscarDescripcionForm()
     return render(request, 'filtrado.html', {'form': form, 'juegos': juegos, 'filtro': "Descripción", 'filtro2': descripcion})
@@ -174,8 +198,7 @@ def buscarRanking(request):
         form = BuscarRankingForm(request.POST)
         if form.is_valid():
             ranking = form.cleaned_data['ranking']
-            juegos = Juego.objects.filter(ranking=ranking)
-            print(juegos)
+            juegos = db.main_juego.find({'ranking': ranking})
     else:
         form = BuscarRankingForm()
     return render(request, 'filtrado.html', {'form': form, 'juegos': juegos, 'filtro': "Ranking", 'filtro2': ranking})
@@ -188,7 +211,7 @@ def filtrarPuntMeta(request):
         form = BuscarPuntMetaForm(request.POST)
         if form.is_valid():
             puntMeta = form.cleaned_data['puntMeta']
-            juegos = Juego.objects.filter(puntuacionMeta=puntMeta)
+            juegos = db.main_juego.find({'puntuacionMeta': puntMeta})
     else:
         form = BuscarPuntMetaForm()
     return render(request, 'filtrado.html', {'form': form, 'juegos': juegos, 'filtro': "Puntuación Metacritic", 'filtro2': puntMeta})
@@ -201,7 +224,7 @@ def filtrarPuntUsu(request):
         form = BuscarPuntUsuForm(request.POST)
         if form.is_valid():
             puntUsu = form.cleaned_data['puntUsu']
-            juegos = Juego.objects.filter(puntuacionUsuarios=puntUsu)
+            juegos = list(db.main_juego.find({'puntuacionUsuarios': puntUsu}))
     else:
         form = BuscarPuntUsuForm()
     return render(request, 'filtrado.html', {'form': form, 'juegos': juegos, 'filtro': "Puntuación Usuario", 'filtro2': puntUsu})
@@ -214,7 +237,9 @@ def filtrarGenero(request):
         form = BuscarGeneroForm(request.POST)
         if form.is_valid():
             genero = form.cleaned_data['genero']
-            juegos = Juego.objects.filter(generos=genero)
+            genero_juegos = list(db.main_juego_generos.find({'genero_id': genero}))
+            juego_ids = [juego['juego_id'] for juego in genero_juegos]
+            juegos = list(db.main_juego.find({'ranking': {'$in': juego_ids}}))
     else:
         form = BuscarGeneroForm()
     return render(request, 'filtrado.html', {'form': form, 'juegos': juegos, 'filtro': "Género", 'filtro2': genero})
@@ -227,7 +252,7 @@ def filtrarConsola(request):
         form = BuscarConsolaForm(request.POST)
         if form.is_valid():
             consola = form.cleaned_data['consola']
-            juegos = Juego.objects.filter(consola_id=consola)
+            juegos = list(db.main_juego.find({'consola_id': consola}))
     else:
         form = BuscarConsolaForm()
     return render(request, 'filtrado.html', {'form': form, 'juegos': juegos, 'filtro': "Consola", 'filtro2': consola})
@@ -240,7 +265,9 @@ def filtrarDesarrolladora(request):
         form = BuscarDesarrolladoraForm(request.POST)
         if form.is_valid():
             desarrolladora = form.cleaned_data['desarrolladora']
-            juegos = Juego.objects.filter(desarrolladoras__id=desarrolladora)
+            juegosIDs = list(db.main_juego_desarrolladoras.find({'desarrolladora_id': desarrolladora}))
+            juego_ids = [juego['juego_id'] for juego in juegosIDs]
+            juegos = list(db.main_juego.find({'ranking': {'$in': juego_ids}}))    
     else:
         form = BuscarDesarrolladoraForm()
     return render(request, 'filtrado.html', {'form': form, 'juegos': juegos, 'filtro': "Desarrolladora", 'filtro2': desarrolladora})
@@ -253,7 +280,7 @@ def filtrarClasificacion(request):
         form = BuscarClasificacionForm(request.POST)
         if form.is_valid():
             clasificacion = form.cleaned_data['clasificacion']
-            juegos = Juego.objects.filter(clasificacion_id=clasificacion)
+            juegos = list(db.main_juego.find({'clasificacion_id': clasificacion.id}))
     else:
         form = BuscarClasificacionForm()
     return render(request, 'filtrado.html', {'form': form, 'juegos': juegos, 'filtro': "Clasificación", 'filtro2': clasificacion})
@@ -266,7 +293,7 @@ def filtrarFecha(request):
         form = BuscarFechaLanzamientoForm(request.POST)
         if form.is_valid():
             anyo = form.cleaned_data['fechaLanzamiento']
-            juegos = Juego.objects.filter(fechaLanzamiento__year=anyo)
+            juegos = db.main_juego.find({'fechaLanzamiento': {'$gte': datetime.datetime(int(anyo), 1, 1), '$lt': datetime.datetime(int(anyo)+1, 1, 1)}})
     else:
         form = BuscarFechaLanzamientoForm()
     return render(request, 'filtrado.html', {'form': form, 'juegos': juegos, 'filtro': "Año de Lanzamiento", 'filtro2': anyo})
@@ -281,9 +308,9 @@ def filtrarFechaPuntuMeta(request):
         form1 = BuscarFechaLanzamientoForm(request.POST)
         form2 = BuscarPuntMetaForm(request.POST)
         if form1.is_valid() and form2.is_valid():
-            anyo = form1.cleaned_data['fechaLanzamiento']
+            anyo = str(form1.cleaned_data['fechaLanzamiento'])
             puntMeta = form2.cleaned_data['puntMeta']
-            juegos = Juego.objects.filter(fechaLanzamiento__year=anyo, puntuacionMeta__gte=puntMeta)
+            juegos = db.main_juego.find({"fechaLanzamiento": {'$gte': datetime.datetime(int(anyo), 1, 1), '$lt': datetime.datetime(int(anyo)+1, 1, 1)}, "puntuacionMeta": {"$gte": puntMeta}})
     else:
         form1 = BuscarFechaLanzamientoForm()
         form2 = BuscarPuntMetaForm()
@@ -299,9 +326,9 @@ def filtrarFechaPuntuUsu(request):
         form1 = BuscarFechaLanzamientoForm(request.POST)
         form2 = BuscarPuntUsuForm(request.POST)
         if form1.is_valid() and form2.is_valid():
-            anyo = form1.cleaned_data['fechaLanzamiento']
+            anyo = str(form1.cleaned_data['fechaLanzamiento'])
             puntUsu = form2.cleaned_data['puntUsu']
-            juegos = Juego.objects.filter(fechaLanzamiento__year=anyo, puntuacionUsuarios__gte=puntUsu).order_by('-puntuacionUsuarios')
+            juegos = db.main_juego.find({"fechaLanzamiento": {'$gte': datetime.datetime(int(anyo), 1, 1), '$lt': datetime.datetime(int(anyo)+1, 1, 1)}, "puntuacionUsuarios": {"$gte": puntUsu}}).sort("puntuacionUsuarios", DESCENDING)
     else:
         form1 = BuscarFechaLanzamientoForm()
         form2 = BuscarPuntUsuForm()
@@ -347,8 +374,8 @@ def compararRanking(request):
         if form1.is_valid() and form2.is_valid():
             ranking1 = form1.cleaned_data['ranking']
             ranking2 = form2.cleaned_data['rankingComparador']
-            juego1 = Juego.objects.filter(ranking=ranking1)
-            juego2 = Juego.objects.filter(ranking=ranking2)
+            juego1 = db.main_juego.find({'ranking': ranking1})
+            juego2 = db.main_juego.find({'ranking': ranking2})
     else:
         form1 = BuscarRankingForm()
         form2 = BuscarRankingComparadorForm()
