@@ -7,3 +7,4 @@ user_agent==0.1.10
 Whoosh==2.7.4
 gunicorn==19.0.0
 dnspython==2.3.0
+pytz==2022.6
