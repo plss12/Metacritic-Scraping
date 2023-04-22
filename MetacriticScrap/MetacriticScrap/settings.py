@@ -9,7 +9,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('SECRET_KEY')
+SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -65,11 +65,11 @@ WSGI_APPLICATION = 'MetacriticScrap.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'djongo',
-        'NAME': os.environ.get('BD_NAME'),
+        'NAME': config('BD_NAME'),
         "CLIENT": {
-            "host": os.environ.get('BD_HOST'),
-            "username": os.environ.get('BD_USERNAME'),
-            "password": os.environ.get('BD_PASSWORD'),
+            "host": config('BD_HOST'),
+            "username": config('BD_USERNAME'),
+            "password": config('BD_PASSWORD'),
         },
     }
 }
