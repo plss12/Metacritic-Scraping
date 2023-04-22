@@ -65,7 +65,6 @@ WSGI_APPLICATION = 'MetacriticScrap.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'djongo',
-        'NAME': config('BD_NAME'),
         "CLIENT": {
             "host": config('BD_HOST'),
             "username": config('BD_USERNAME'),
