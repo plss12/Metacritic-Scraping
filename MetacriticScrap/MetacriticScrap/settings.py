@@ -63,14 +63,9 @@ WSGI_APPLICATION = 'MetacriticScrap.wsgi.application'
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'djongo',
-        'NAME': config('BD_NAME'),
-        "CLIENT": {
-            "host": config('BD_HOST'),
-            "username": config('BD_USERNAME'),
-            "password": config('BD_PASSWORD'),
-        },
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": "mydatabase",
     }
 }
 

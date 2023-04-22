@@ -1,7 +1,6 @@
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, render
 from main.populate import populate_database, populate_whoosh
-from main.forms import *
 from whoosh.index import open_dir
 from whoosh.qparser import QueryParser
 from django.core.paginator import Paginator
