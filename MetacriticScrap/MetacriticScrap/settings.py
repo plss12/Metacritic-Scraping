@@ -1,5 +1,6 @@
 import os
 from decouple import config
+from pymongo import MongoClient
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -12,7 +13,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -66,6 +67,7 @@ WSGI_APPLICATION = 'MetacriticScrap.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'djongo',
+        'NAME': config('BD_NAME'),
         "CLIENT": {
             "host": config('BD_HOST'),
             "username": config('BD_USERNAME'),
@@ -73,6 +75,9 @@ DATABASES = {
         },
     }
 }
+
+client = MongoClient(config('BD_HOST'))
+db = client[config('BD_NAME')]
 
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators

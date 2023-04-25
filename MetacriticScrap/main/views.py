@@ -7,23 +7,11 @@ from whoosh.qparser import QueryParser
 from django.core.paginator import Paginator
 from django.http.response import HttpResponseRedirect
 from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth import login, authenticate
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
-from pymongo import MongoClient
 from pymongo import DESCENDING
-from decouple import config
-
-client = MongoClient(config('BD_HOST'))
-db = client[config('BD_NAME')]
-juegos = db.main_juego
-consolas = db.main_consola
-generos = db.main_genero
-desarrolladoras = db.main_desarrolladora
-clasificaciones = db.main_clasificacion
-juego_desarrolladoras = db.main_juego_desarrolladoras
-juego_generos = db.main_juego_generos
-juego_otrasConsolas = db.juego_otrasConsolas
+from MetacriticScrap.settings import db
 
 def index (request):
     return render(request, 'index.html')
@@ -76,7 +64,7 @@ def consolaFiltro(request, consola):
     if(' --- ' in consola):
         consola = consola.replace(' --- ', '/')
     consola = db.main_consola.find_one({'nombre': consola})
-    juegos = list(db.main_juego.find({'consola_id': consola['nombre']}))
+    juegos = list(db.main_juego.find({'consola': consola['nombre']}))
     if(len(juegos) == 0):
         return render(request, 'filtroListas.html', {'tipo': 'Consolas', 'juegos': juegos, 'filtro': consola['nombre'], 'error': 'No hay ningún juego que sea principalmente para esta consola'})
     return render(request, 'filtroListas.html', {'tipo': 'Consolas', 'juegos': juegos, 'filtro': consola['nombre']})
@@ -90,7 +78,7 @@ def desarrolladoraFiltro(request, desarrolladora):
         desarrolladora = desarrolladora.replace(' --- ', '/')
 
     desarrolladora = db.main_desarrolladora.find_one({'nombre': desarrolladora})
-    juegosIDs = db.main_juego_desarrolladoras.distinct('juego_id', {'desarrolladora_id': desarrolladora["nombre"]})
+    juegosIDs = db.main_juego_desarrolladoras.distinct('juego_id', {'desarrolladora': desarrolladora["nombre"]})
     juegos = list(db.main_juego.find({'ranking': {'$in': juegosIDs}}))
 
     return render(request, 'filtroListas.html', {'tipo': 'Desarrolladoras', 'juegos': juegos, 'filtro': desarrolladora["nombre"]})
@@ -103,7 +91,7 @@ def generoFiltro(request, genero):
     if(' --- ' in genero):
         genero = genero.replace(' --- ', '/')
     genero = db.main_genero.find_one({'nombre': genero})
-    juegosIDs = db.main_juego_generos.distinct('juego_id', {'genero_id': genero["nombre"]})
+    juegosIDs = db.main_juego_generos.distinct('juego_id', {'genero': genero["nombre"]})
     juegos = list(db.main_juego.find({'ranking': {'$in': juegosIDs}}))
     return render(request, 'filtroListas.html', {'tipo': 'Generos', 'juegos': juegos, 'filtro': genero["nombre"]})
 
@@ -115,7 +103,7 @@ def clasificacionFiltro(request, clasificacion):
     if(' --- ' in clasificacion):
         clasificacion = clasificacion.replace(' --- ', '/')
     clasificacion = db.main_clasificacion.find_one({'nombre': clasificacion})
-    juegos = list(db.main_juego.find({'clasificacion_id': clasificacion['nombre']}))
+    juegos = list(db.main_juego.find({'clasificacion': clasificacion['nombre']}))
     return render(request, 'filtroListas.html', {'tipo': 'Clasificaciones', 'juegos': juegos, 'filtro': clasificacion["nombre"]})
 
 @login_required(login_url='/ingresar')
@@ -144,7 +132,7 @@ def pagina_juego(request, id):
     juego = db.main_juego.find_one({'ranking': id})
     desarrolladoras = list(db.main_juego_desarrolladoras.find({'juego_id': juego['ranking']}))
     generos = list(db.main_juego_generos.find({'juego_id': juego['ranking']}))
-    otrasConsolas = list(db.main_juego_otrasConsolas.distinct('consola_id', {'juego_id': juego['ranking']}))
+    otrasConsolas = list(db.main_juego_otrasConsolas.distinct('consola', {'juego_id': juego['ranking']}))
     if(len(otrasConsolas) == 0):
         return render(request, 'juego.html', {'juego': juego, 'desarrolladoras': desarrolladoras, 'generos': generos})
     else:
@@ -237,7 +225,7 @@ def filtrarGenero(request):
         form = BuscarGeneroForm(request.POST)
         if form.is_valid():
             genero = form.cleaned_data['genero']
-            genero_juegos = list(db.main_juego_generos.find({'genero_id': genero}))
+            genero_juegos = list(db.main_juego_generos.find({'genero': genero}))
             juego_ids = [juego['juego_id'] for juego in genero_juegos]
             juegos = list(db.main_juego.find({'ranking': {'$in': juego_ids}}))
     else:
@@ -252,7 +240,7 @@ def filtrarConsola(request):
         form = BuscarConsolaForm(request.POST)
         if form.is_valid():
             consola = form.cleaned_data['consola']
-            juegos = list(db.main_juego.find({'consola_id': consola}))
+            juegos = list(db.main_juego.find({'consola': consola}))
     else:
         form = BuscarConsolaForm()
     return render(request, 'filtrado.html', {'form': form, 'juegos': juegos, 'filtro': "Consola", 'filtro2': consola})
@@ -265,7 +253,7 @@ def filtrarDesarrolladora(request):
         form = BuscarDesarrolladoraForm(request.POST)
         if form.is_valid():
             desarrolladora = form.cleaned_data['desarrolladora']
-            juegosIDs = list(db.main_juego_desarrolladoras.find({'desarrolladora_id': desarrolladora}))
+            juegosIDs = list(db.main_juego_desarrolladoras.find({'desarrolladora': desarrolladora}))
             juego_ids = [juego['juego_id'] for juego in juegosIDs]
             juegos = list(db.main_juego.find({'ranking': {'$in': juego_ids}}))    
     else:
@@ -280,7 +268,7 @@ def filtrarClasificacion(request):
         form = BuscarClasificacionForm(request.POST)
         if form.is_valid():
             clasificacion = form.cleaned_data['clasificacion']
-            juegos = list(db.main_juego.find({'clasificacion_id': clasificacion.id}))
+            juegos = list(db.main_juego.find({'clasificacion': clasificacion}))
     else:
         form = BuscarClasificacionForm()
     return render(request, 'filtrado.html', {'form': form, 'juegos': juegos, 'filtro': "Clasificación", 'filtro2': clasificacion})
@@ -368,15 +356,24 @@ def compararRanking(request):
     ranking2 = ""
     juego1 = []
     juego2 = []
+    desarrolladoras1 = []
+    desarrolladoras2 = []
+    generos1 = []
+    generos2 = []
     if request.method == 'POST':
         form1 = BuscarRankingForm(request.POST)
         form2 = BuscarRankingComparadorForm(request.POST)
         if form1.is_valid() and form2.is_valid():
             ranking1 = form1.cleaned_data['ranking']
             ranking2 = form2.cleaned_data['rankingComparador']
-            juego1 = db.main_juego.find({'ranking': ranking1})
-            juego2 = db.main_juego.find({'ranking': ranking2})
+            juego1 = db.main_juego.find_one({'ranking': ranking1})
+            print(juego1)
+            desarrolladoras1 = list(db.main_juego_desarrolladoras.find({'juego_id': juego1['ranking']}))
+            generos1 = list(db.main_juego_generos.find({'juego_id': juego1['ranking']}))
+            juego2 = db.main_juego.find_one({'ranking': ranking2})
+            desarrolladoras2 = list(db.main_juego_desarrolladoras.find({'juego_id': juego2['ranking']}))
+            generos2 = list(db.main_juego_generos.find({'juego_id': juego2['ranking']}))
     else:
         form1 = BuscarRankingForm()
         form2 = BuscarRankingComparadorForm()
-    return render(request, 'compararJuegos.html', {'form1': form1, "form2": form2, 'juegos1': juego1, 'juegos2': juego2})
+    return render(request, 'compararJuegos.html', {'form1': form1, "form2": form2, 'juegos1': juego1, 'juegos2': juego2, 'desarrolladoras1': desarrolladoras1, 'desarrolladoras2': desarrolladoras2, 'generos1': generos1, 'generos2': generos2})

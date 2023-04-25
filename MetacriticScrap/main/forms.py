@@ -2,20 +2,7 @@
 import datetime
 from django import forms
 from django.forms import NumberInput
-from main.models import Genero, Consola, Desarrolladora, Clasificacion, Juego
-from pymongo import MongoClient
-from decouple import config
-
-client = MongoClient(config('BD_HOST'))
-db = client[config('BD_NAME')]
-juegos = db.main_juego
-consolas = db.main_consola
-generos = db.main_genero
-desarrolladoras = db.main_desarrolladora
-clasificaciones = db.main_clasificacion
-juego_desarrolladoras = db.main_juego_desarrolladoras
-juego_generos = db.main_juego_generos
-juego_otrasConsolas = db.juego_otrasConsolas
+from MetacriticScrap.settings import db
 
 class BuscarNombreForm(forms.Form):
     nombre = forms.CharField(label='Nombre', max_length=100)

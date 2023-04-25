@@ -20,7 +20,7 @@ Detalles del juego:
             </div>
             <div class="uk-card-body">
                 <h5><strong>Ranking:</strong> {{juego.ranking}}</h5>
-                <h5><strong>Consola:</strong> <a href="/Consolas/{{juego.consola_id|to_line}}">{{juego.consola_id}}</a></h5>
+                <h5><strong>Consola:</strong> <a href="/Consolas/{{juego.consola|to_line}}">{{juego.consola}}</a></h5>
                 {% if otrasConsolas %}
                 <h5><strong>Otras consolas:</strong></h5>
                 <ul>
@@ -36,16 +36,16 @@ Detalles del juego:
                 <h5><strong>Desarrolladoras:</strong> </h5>
                 <ul>
                     {% for desarrolladora in desarrolladoras %}
-                        <a href="/Desarrolladoras/{{desarrolladora.desarrolladora_id|to_line}}"><li>{{desarrolladora.desarrolladora_id}}</li></a>
+                        <a href="/Desarrolladoras/{{desarrolladora.desarrolladora|to_line}}"><li>{{desarrolladora.desarrolladora}}</li></a>
                     {% endfor %}
                 </ul>
                 <h5><strong>Generos: </strong></h5>
                 <ul>
                     {% for genero in generos %}
-                        <a href="/Generos/{{genero.genero_id|to_line}}"><li>{{genero.genero_id}}</li></a>
+                        <a href="/Generos/{{genero.genero|to_line}}"><li>{{genero.genero}}</li></a>
                     {% endfor %}
                 </ul>
-                <h5><strong>Clasificación:</strong> <a href="/Clasificaciones/{{juego.clasificacion_id|to_line}}">{{juego.clasificacion_id}}</a></h5>
+                <h5><strong>Clasificación:</strong> <a href="/Clasificaciones/{{juego.clasificacion|to_line}}">{{juego.clasificacion}}</a></h5>
                 <h5><a href={{juego.url}}>Detalles Metacritic</a></h5>
             </div>
         </div>

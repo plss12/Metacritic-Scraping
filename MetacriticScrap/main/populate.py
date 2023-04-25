@@ -1,6 +1,5 @@
 import shutil
 import time
-from main.models import Genero, Consola, Desarrolladora, Clasificacion, Juego
 from datetime import datetime
 import requests
 from bs4 import BeautifulSoup
@@ -8,12 +7,13 @@ import os, ssl
 from user_agent import generate_user_agent
 from whoosh.index import create_in
 from whoosh.fields import Schema, TEXT, ID
+from MetacriticScrap.settings import db
 
 path = "https://www.metacritic.com/browse/games/score/metascore/all/all/filtered?page="
 
 base = "https://www.metacritic.com"
 
-num_pages = 10 #Para una carga de datos completa, poner 200, si se quiere una carga rápida de prueba, probar con un par de páginas
+num_pages = 1 #Para una carga de datos completa, poner 200, si se quiere una carga rápida de prueba, probar con un par de páginas
 
 requests.packages.urllib3.disable_warnings()
 if (not os.environ.get('PYTHONHTTPSVERIFY', '') and
@@ -122,43 +122,92 @@ def formatear_fecha(fecha):
     fecha = datetime.strptime(res, '%m/%d/%Y')
     return fecha
 
-def delete_tables():
-    Genero.drop_collection()
-    Consola.drop_collection()
-    Desarrolladora.drop_collection()
-    Clasificacion.drop_collection()
-    Juego.drop_collection()
+def delete_collections():
+    db.main_genero.drop()
+    db.main_desarrolladora.drop()
+    db.main_consola.drop()
+    db.main_clasificacion.drop()
+    db.main_juego.drop()
+    db.main_juego_generos.drop()
+    db.main_juego_desarrolladoras.drop()
+    db.main_juego_otrasConsolas.drop()
 
 def populate_database():
-    delete_tables()
+    delete_collections()
     print('Populando base de datos...')
     i=0
     while(i<num_pages):
         datos = extraer_datos(i)
         i+=1
         for juego in datos:
-            consola = Consola.objects.get_or_create(nombre=juego[4])[0]
-            clasificacion = Clasificacion.objects.get_or_create(nombre=juego[12])[0]
+            consola = db.main_consola.update_one(
+                {'nombre': juego[4]},
+                {'$setOnInsert': {'nombre': juego[4]}},
+                upsert=True
+            )
+            clasificacion = db.main_clasificacion.update_one(
+                {'nombre': juego[12]},
+                {'$setOnInsert': {'nombre': juego[12]}},
+                upsert=True
+            )
             fecha = formatear_fecha(juego[10])
             if(juego[6] == "tbd"):
                 juego[6] = 0
-            Juego.objects.get_or_create(ranking=int(juego[0]), nombre=juego[1], imagen=juego[2], url=juego[3], consola=consola, puntuacionMeta=int(juego[5]), puntuacionUsuarios=float(juego[6]), descripcion=juego[7], urlMetaReviews=juego[8], urlUsuariosReviews=juego[9], fechaLanzamiento=fecha, clasificacion=clasificacion)
+            ranking = int(juego[0])
+            juego_doc = {
+                'ranking': ranking,
+                'nombre': juego[1],
+                'imagen': juego[2],
+                'url': juego[3],
+                'consola': juego[4],
+                'puntuacionMeta': int(juego[5]),
+                'puntuacionUsuarios': float(juego[6]),
+                'descripcion': juego[7],
+                'urlMetaReviews': juego[8],
+                'urlUsuariosReviews': juego[9],
+                'fechaLanzamiento': fecha,
+                'clasificacion': juego[12]
+            }
+            db.main_juego.insert_one(juego_doc).inserted_id
+            
             for genero in juego[13]:
                 if(genero == ""):
                     continue
-                genero = Genero.objects.get_or_create(nombre=genero)[0]
-                Juego.objects.get(ranking=juego[0]).generos.add(genero)
+                db.main_genero.update_one(
+                    {'nombre': genero},
+                    {'$setOnInsert': {'nombre': genero}},
+                    upsert=True
+                )
+                genero_doc = {
+                    'genero': genero,
+                    'juego_id': ranking
+                }
+                db.main_juego_generos.insert_one(genero_doc)
+            
             for desarrolladora in juego[11]:
-                desarrolladora = Desarrolladora.objects.get_or_create(nombre=desarrolladora)[0]
-                Juego.objects.get(ranking=juego[0]).desarrolladoras.add(desarrolladora)
+                db.main_desarrolladora.update_one(
+                    {'nombre': desarrolladora},
+                    {'$setOnInsert': {'nombre': desarrolladora}},
+                    upsert=True
+                )
+                desarrolladora_doc = {
+                    'desarrolladora': desarrolladora,
+                    'juego_id': ranking
+                }
+                db.main_juego_desarrolladoras.insert_one(desarrolladora_doc)
+            
             for otraConsola in juego[14]:
-                consola = Consola.objects.get_or_create(nombre=otraConsola)[0]
-                Juego.objects.get(ranking=juego[0]).otrasConsolas.add(consola)
-    generos = Genero.objects.all().count()
-    desarrolladoras = Desarrolladora.objects.all().count()
-    consolas = Consola.objects.all().count()
-    clasificaciones = Clasificacion.objects.all().count()
-    juegos = Juego.objects.all().count()
+                otra_consola_doc = {
+                    'consola': otraConsola,
+                    'juego_id': ranking
+                }
+                db.main_juego_otrasConsolas.insert_one(otra_consola_doc)
+    # Contamos los documentos en cada colección
+    generos = db.main_genero.count_documents({})
+    desarrolladoras = db.main_desarrolladora.count_documents({})
+    consolas = db.main_consola.count_documents({})
+    clasificaciones = db.main_clasificacion.count_documents({})
+    juegos = db.main_juego.count_documents({})
     print('Finalizada la carga de la base de datos')
     return juegos, generos, desarrolladoras, consolas, clasificaciones
 
@@ -173,7 +222,7 @@ def populate_whoosh():
     writer = ix.writer()
 
     numJuegos=0
-    listaJuegos=Juego.objects.all()
+    listaJuegos = list(db.main_juego.find())
     for juego in listaJuegos:
         writer.add_document(id=str(juego.ranking), nombre=str(juego.nombre), descripcion=str(juego.descripcion))  
         numJuegos+=1
