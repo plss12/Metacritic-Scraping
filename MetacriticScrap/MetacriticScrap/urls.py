@@ -16,7 +16,6 @@ urlpatterns = [
     path('listaClasificaciones/', views.listaClasificaciones),
     path('populateBD/', views.populateDB),
     path('populateWhoosh/', views.populateWhoosh),
-    path('admin/', admin.site.urls),
     path('juego/<int:id>', views.pagina_juego),
     path('buscarNombre/', views.buscarNombre),
     path('buscarDescripcion/', views.buscarDescripcion),
