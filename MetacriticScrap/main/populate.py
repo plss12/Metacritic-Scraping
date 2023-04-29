@@ -13,7 +13,7 @@ path = "https://www.metacritic.com/browse/games/score/metascore/all/all/filtered
 
 base = "https://www.metacritic.com"
 
-num_pages = 1 #Para una carga de datos completa, poner 200, si se quiere una carga rápida de prueba, probar con un par de páginas
+num_pages = 2 #Si se quiere una carga rápida de prueba, probar con un par de páginas
 
 requests.packages.urllib3.disable_warnings()
 if (not os.environ.get('PYTHONHTTPSVERIFY', '') and
@@ -34,7 +34,7 @@ def extraer_datos(pagina):
     imagenes = s.find_all("td", class_="clamp-image-wrap")
     while((len(games)!=100 or len(imagenes)!=100) and pagina!=num_pages-1):
         print("Error al obtener los datos de la página " + str(pagina) + ". Volviendo a intentarlo...")
-        time.sleep(10)
+        time.sleep(5)
         user_agent=generate_user_agent(device_type="desktop", os=("win", "mac", "linux"), navigator=('chrome', 'firefox'))
         session.headers.update({'User-Agent': user_agent})
         req = session.get(url)
@@ -138,7 +138,6 @@ def populate_database():
     i=0
     while(i<num_pages):
         datos = extraer_datos(i)
-        i+=1
         for juego in datos:
             consola = db.main_consola.update_one(
                 {'nombre': juego[4]},
@@ -202,6 +201,7 @@ def populate_database():
                     'juego_id': ranking
                 }
                 db.main_juego_otrasConsolas.insert_one(otra_consola_doc)
+        i+=1
     # Contamos los documentos en cada colección
     generos = db.main_genero.count_documents({})
     desarrolladoras = db.main_desarrolladora.count_documents({})
@@ -224,7 +224,7 @@ def populate_whoosh():
     numJuegos=0
     listaJuegos = list(db.main_juego.find())
     for juego in listaJuegos:
-        writer.add_document(id=str(juego.ranking), nombre=str(juego.nombre), descripcion=str(juego.descripcion))  
+        writer.add_document(id=str(juego["ranking"]), nombre=str(juego["nombre"]), descripcion=str(juego["descripcion"]))  
         numJuegos+=1
     writer.commit()
     return numJuegos

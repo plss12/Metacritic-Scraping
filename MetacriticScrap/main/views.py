@@ -367,7 +367,6 @@ def compararRanking(request):
             ranking1 = form1.cleaned_data['ranking']
             ranking2 = form2.cleaned_data['rankingComparador']
             juego1 = db.main_juego.find_one({'ranking': ranking1})
-            print(juego1)
             desarrolladoras1 = list(db.main_juego_desarrolladoras.find({'juego_id': juego1['ranking']}))
             generos1 = list(db.main_juego_generos.find({'juego_id': juego1['ranking']}))
             juego2 = db.main_juego.find_one({'ranking': ranking2})
