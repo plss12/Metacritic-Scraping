@@ -33,7 +33,7 @@ Comparador de Juegos:
 
 </br>
 <div>
-    <a href="/juegos1/{{juegos1.ranking}}" class="uk-link-reset">
+    <a href="/juego/{{juegos1.ranking}}" class="uk-link-reset">
         <div class="uk-flex uk-flex-center column">
             <div class="uk-card uk-card-default">
                 <div class="uk-card-header">
@@ -91,8 +91,8 @@ Comparador de Juegos:
                 </div>
                 <div class="uk-card-body">
                     <h5><strong>Ranking: </strong>{{juegos2.ranking}}</h5>
-                    <h5><strong>Consola: </strong><a href="/Consolas/{{juego.consola|to_line}}">{{juegos2.consola}}</a></h5>
-                    <h5><strong>Puntuación de Metacritic: </strong><a href={{juego.urlMetaReviews}}>{{juegos2.puntuacionMeta}}</a></h5>
+                    <h5><strong>Consola: </strong><a href="/Consolas/{{juegos2.consola|to_line}}">{{juegos2.consola}}</a></h5>
+                    <h5><strong>Puntuación de Metacritic: </strong><a href={{juegos2.urlMetaReviews}}>{{juegos2.puntuacionMeta}}</a></h5>
                     <h5><strong>Puntuación de los usuarios: </strong><a
                             href={{juegos2.urlUsuariosReviews}}>{{juegos2.puntuacionUsuarios}}</a></h5>
                     <h5><strong>Fecha de lanzamiento: </strong>{{juegos2.fechaLanzamiento}}</h5>
